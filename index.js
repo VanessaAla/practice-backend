@@ -1,10 +1,4 @@
 const express = require("express");
-const loggerMiddleWare = require("morgan");
-const corsMiddleWare = require("cors");
-const { PORT } = require("./config/constants");
-const authRouter = require("./routers/auth");
-const authMiddleWare = require("./auth/middleware");
-
 const app = express();
 
 /**
@@ -33,6 +27,7 @@ const app = express();
  *
  */
 
+const loggerMiddleWare = require("morgan");
 app.use(loggerMiddleWare("dev"));
 
 /**
@@ -65,27 +60,8 @@ app.use(bodyParserMiddleWare);
  *
  */
 
+const corsMiddleWare = require("cors");
 app.use(corsMiddleWare());
-
-/**
- *
- * delay middleware
- *
- * Since our api and client run on the same machine in development mode
- * the request come in within milliseconds
- * To simulate normal network traffic this simple middleware delays
- * the incoming requests by 1500 second
- * This allows you to practice with showing loading spinners in the client
- *
- * - it's only used when you use npm run dev to start your app
- * - the delay time can be configured in the package.json
- */
-
-if (process.env.DELAY) {
-  app.use((req, res, next) => {
-    setTimeout(() => next(), parseInt(process.env.DELAY));
-  });
-}
 
 /**
  *
@@ -112,6 +88,8 @@ if (process.env.DELAY) {
  * GET /me
  *
  */
+
+const authMiddleWare = require("./auth/middleware");
 
 /**
  * Routes
@@ -150,9 +128,14 @@ app.post("/authorized_post_request", authMiddleWare, (req, res) => {
   });
 });
 
+const authRouter = require("./routers/auth");
 app.use("/", authRouter);
 
+const spacesRouter = require("./routers/spaces");
+app.use("/spaces", spacesRouter);
+
 // Listen for connections on specified port (default is port 4000)
+const { PORT } = require("./config/constants");
 
 app.listen(PORT, () => {
   console.log(`Listening on port: ${PORT}`);
